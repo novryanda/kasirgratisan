@@ -297,6 +297,11 @@ export default function TransactionHistory() {
                           <p className="text-xs text-muted-foreground">{format(new Date(tx.date), 'HH:mm')}</p>
                         </div>
                         <p className="text-sm font-bold text-primary">{rp(tx.total)}</p>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground truncate">
+                          {tx.customerName && <span>👤 {tx.customerName}</span>}
+                          {tx.tableNumber && <span>Meja {tx.tableNumber}</span>}
+                          {tx.remarks && <span>📝 {tx.remarks}</span>}
+                        </div>
                         <p className="text-[10px] text-muted-foreground truncate">
                           {getTxItems(tx.id).map(it => it.productName).join(', ')}
                         </p>
@@ -313,12 +318,12 @@ export default function TransactionHistory() {
 
       {/* Detail Sheet */}
       <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
-        <SheetContent side="bottom" className="h-[80vh] rounded-t-2xl max-w-lg mx-auto">
-          <SheetHeader>
+        <SheetContent side="bottom" className="h-[80vh] rounded-t-2xl max-w-lg mx-auto flex flex-col">
+          <SheetHeader className="shrink-0">
             <SheetTitle className="text-left">Detail Transaksi</SheetTitle>
           </SheetHeader>
           {selectedTx && (
-            <div className="mt-4 space-y-4 overflow-y-auto pb-6">
+            <div className="flex-1 overflow-y-auto mt-4 space-y-4 pb-6">
               <div className="bg-muted/50 rounded-xl p-3 space-y-1">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Status</span>
