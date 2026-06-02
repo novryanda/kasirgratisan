@@ -24,6 +24,7 @@ import { isAnalyticsEnabled, setAnalyticsEnabled } from '@/lib/analytics';
 import { usePWAInstall } from '@/hooks/use-pwa-install';
 import { isNativePlatform, getDefaultBluetoothPrinter, setDefaultBluetoothPrinter, listPairedBluetoothDevices, type BluetoothPrinter } from '@/lib/printer';
 import { Printer } from 'lucide-react';
+import { APP_VERSION } from '@/lib/app-version';
 
 export default function Pengaturan() {
   const isNative = isNativePlatform();
@@ -1002,7 +1003,7 @@ export default function Pengaturan() {
         <CardContent className="p-4 text-center space-y-2">
            <p className="text-sm font-bold">KasirGratisan</p>
            <p className="text-xs text-muted-foreground">POS Gratis untuk UMKM Indonesia 🇮🇩</p>
-           <p className="text-[10px] text-muted-foreground">v1.0 • Data tersimpan di perangkat</p>
+           <p className="text-[10px] text-muted-foreground">v{APP_VERSION} • Data tersimpan di perangkat</p>
 
            {/* Links */}
            <div className="flex flex-col gap-2 pt-2">
