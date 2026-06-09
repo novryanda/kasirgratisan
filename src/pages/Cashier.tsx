@@ -1133,9 +1133,14 @@ export default function Kasir() {
 
             <div className="space-y-1.5">
               <p className="text-sm font-medium">Jumlah Bayar</p>
-              <div className="h-12 flex items-center justify-center rounded-md border border-input bg-background text-lg font-bold text-center px-3">
-                {paidAmount > 0 ? `Rp ${paidAmount.toLocaleString('id-ID')}` : 'Rp 0'}
-              </div>
+              <Input
+                type="number"
+                inputMode="numeric"
+                value={paymentAmount === '0' ? '' : paymentAmount}
+                onChange={e => { setPaymentAmount(e.target.value || '0'); setIsQuickAdding(true); }}
+                placeholder="Masukkan jumlah bayar..."
+                className="h-12 text-lg font-bold text-center"
+              />
               <div className="flex flex-wrap gap-1.5">
                 {[1000, 2000, 5000, 10000, 20000, 50000, 100000].map(nom => (
                   <button
