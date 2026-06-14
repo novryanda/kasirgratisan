@@ -886,7 +886,8 @@ export default function Kasir() {
       {cartCount > 0 && (
         <button
           onClick={() => setCartOpen(true)}
-          className="md:hidden fixed bottom-24 right-4 flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-full shadow-xl active:scale-95 transition-transform z-40"
+          className="md:hidden fixed right-4 flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-full shadow-xl active:scale-95 transition-transform z-40"
+          style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <ShoppingCart className="w-5 h-5" />
           <span className="font-bold text-sm">{cartCount} item</span>
