@@ -86,5 +86,15 @@
   "index": {
     "title": "Welcome to Your Blank App",
     "description": "Start building your amazing project here!"
+  },
+  "themeColors": {
+    "blue": "Blue",
+    "orange": "Orange",
+    "green": "Green",
+    "purple": "Purple",
+    "red": "Red",
+    "pink": "Pink",
+    "teal": "Teal",
+    "yellow": "Yellow"
   }
 }
