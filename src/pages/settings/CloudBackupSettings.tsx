@@ -159,7 +159,7 @@ export default function CloudBackupSettings() {
 
     setBusy('verify_native');
     try {
-      let packageName = 'com.kasirceria.app';
+      let packageName = 'com.freekasir.app';
       try {
         const info = await App.getInfo();
         packageName = info.id;
