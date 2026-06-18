@@ -1,4 +1,4 @@
-import { Wallet, AlertTriangle, Infinity as InfinityIcon, Users as UsersIcon, FileSpreadsheet, PackageSearch, Sparkles, Cloud, Printer, HandCoins, Receipt, type LucideIcon } from 'lucide-react';
+import { Wallet, AlertTriangle, Infinity as InfinityIcon, Users as UsersIcon, FileSpreadsheet, PackageSearch, Sparkles, Cloud, Printer, HandCoins, Receipt, ClipboardCheck, type LucideIcon } from 'lucide-react';
 import { db } from './db';
 
 /**
@@ -28,6 +28,16 @@ export interface WhatsNewFeature {
 }
 
 export const FEATURES: WhatsNewFeature[] = [
+  {
+    id: '2026-06-stock-opname',
+    title: 'Stock Opname (Penyesuaian Stok)',
+    description:
+      'Kini kamu bisa melakukan audit stok fisik produk secara periodik. Sistem mendukung pencocokan stok fisik secara manual atau massal lewat unduh-unggah lembar kerja Excel. Selisih stok akan langsung disesuaikan secara otomatis dan dicatat ke dalam mutasi laporan stok.',
+    icon: ClipboardCheck,
+    iconColor: 'text-primary bg-primary/10',
+    publishedAt: '2026-06-18',
+    cta: { label: 'Mulai Stock Opname', to: '/settings/stock-opname' },
+  },
   {
     id: '2026-06-receipt-footer',
     title: 'Kustomisasi Footer Struk',
