@@ -142,10 +142,10 @@
       "description": "{{count}} units · pcs, kg, serving, etc."
     },
     "receiptFooter": {
-      "title": "Receipt Footer",
-      "description": "Configure text at the bottom of transaction receipt",
+      "title": "Receipt Settings",
+      "description": "Configure receipt footer text and logo printing options",
       "placeholder": "Example: Thank you for your visit!",
-      "saveSuccess": "Receipt footer saved"
+      "saveSuccess": "Receipt settings saved"
     },
     "stockOpname": {
       "title": "Stock Opname",
@@ -1293,5 +1293,13 @@
       "saveFailed": "Failed to complete stock opname",
       "notesPlaceholder": "Opname session notes (optional)"
     }
+  },
+  "receiptSettings": {
+    "title": "Receipt Settings",
+    "printLogoLabel": "Print Store Logo",
+    "printLogoDescription": "Print the store logo at the very top of the physical receipt. Ensure your thermal printer supports image/bitmap printing.",
+    "footerLabel": "Receipt Footer Text",
+    "saveSuccess": "Receipt settings saved successfully",
+    "saveFailed": "Failed to save receipt settings"
   }
 }

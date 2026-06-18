@@ -142,10 +142,10 @@
       "description": "{{count}} satuan · pcs, kg, porsi, dll"
     },
     "receiptFooter": {
-      "title": "Footer Struk",
-      "description": "Atur teks di bagian bawah struk transaksi",
+      "title": "Pengaturan Struk",
+      "description": "Atur teks footer dan cetak logo pada struk belanja",
       "placeholder": "Contoh: Terima kasih atas kunjungan Anda!",
-      "saveSuccess": "Footer struk disimpan"
+      "saveSuccess": "Pengaturan struk disimpan"
     },
     "stockOpname": {
       "title": "Stock Opname",
@@ -1292,5 +1292,13 @@
       "saveFailed": "Gagal menyelesaikan stock opname",
       "notesPlaceholder": "Catatan sesi opname (opsional)"
     }
+  },
+  "receiptSettings": {
+    "title": "Pengaturan Struk",
+    "printLogoLabel": "Cetak Logo Toko",
+    "printLogoDescription": "Cetak logo toko di bagian paling atas struk belanja fisik. Pastikan printer thermal Anda mendukung pencetakan gambar/bitmap.",
+    "footerLabel": "Teks Footer Struk",
+    "saveSuccess": "Pengaturan struk berhasil disimpan",
+    "saveFailed": "Gagal menyimpan pengaturan struk"
   }
 }

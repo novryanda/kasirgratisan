@@ -239,8 +239,91 @@ export const getDailyReportESCPOSData = ({
   return lines.join('');
 };
 
+export const convertBase64ToEscPosImage = (
+  base64Str: string,
+  targetWidth = 192
+): Promise<Uint8Array | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+
+        // Calculate height keeping aspect ratio
+        const aspect = img.width / img.height;
+        const targetHeight = Math.round(targetWidth / aspect);
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        // Draw image onto canvas
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, targetWidth, targetHeight);
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+        const pixels = imgData.data;
+
+        // Width in bytes (padded to 8 bits)
+        const widthBytes = Math.ceil(targetWidth / 8);
+        const escposData = new Uint8Array(8 + widthBytes * targetHeight);
+
+        // ESC/POS header for raster bit image: GS v 0 m xL xH yL yH
+        escposData[0] = 29;  // GS
+        escposData[1] = 118; // v
+        escposData[2] = 48;  // 0
+        escposData[3] = 0;   // m = 0 (normal)
+        escposData[4] = widthBytes % 256;
+        escposData[5] = Math.floor(widthBytes / 256);
+        escposData[6] = targetHeight % 256;
+        escposData[7] = Math.floor(targetHeight / 256);
+
+        let dataIdx = 8;
+        for (let y = 0; y < targetHeight; y++) {
+          for (let xByte = 0; xByte < widthBytes; xByte++) {
+            let byteValue = 0;
+            for (let bit = 0; bit < 8; bit++) {
+              const xPixel = xByte * 8 + bit;
+              if (xPixel < targetWidth) {
+                const pixelIdx = (y * targetWidth + xPixel) * 4;
+                const r = pixels[pixelIdx];
+                const g = pixels[pixelIdx + 1];
+                const b = pixels[pixelIdx + 2];
+                const a = pixels[pixelIdx + 3];
+
+                // Convert to grayscale
+                const brightness = r * 0.299 + g * 0.587 + b * 0.114;
+                // Thresholding: if alpha is low or pixel is bright, it is white (0).
+                const isBlack = a > 50 && brightness < 128;
+
+                if (isBlack) {
+                  byteValue |= (1 << (7 - bit));
+                }
+              }
+            }
+            escposData[dataIdx++] = byteValue;
+          }
+        }
+        resolve(escposData);
+      } catch (err) {
+        console.error('Error converting image to ESC/POS:', err);
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      resolve(null);
+    };
+    img.src = base64Str;
+  });
+};
+
 export const printRawNativeBluetooth = async (
-  rawText: string,
+  rawText: string | Uint8Array,
   toast: { info: (m: string) => void; success: (m: string) => void; error: (m: string) => void }
 ): Promise<boolean> => {
   if (!window.bluetoothSerial) {
@@ -278,8 +361,9 @@ export const printRawNativeBluetooth = async (
               printer.address,
               () => {
                 toast.info('Mencetak...');
-                const encoder = new TextEncoder();
-                const data = encoder.encode(rawText);
+                const data = typeof rawText === 'string'
+                  ? new TextEncoder().encode(rawText)
+                  : rawText;
 
                 window.bluetoothSerial?.write(
                   data,
@@ -315,7 +399,36 @@ export const printRawNativeBluetooth = async (
   });
 };
 
-export const printNativeBluetooth = async (printData: PrintData, toast: { info: (m: string) => void; success: (m: string) => void; error: (m: string) => void }): Promise<boolean> => {
+export const printNativeBluetooth = async (
+  printData: PrintData,
+  toast: { info: (m: string) => void; success: (m: string) => void; error: (m: string) => void }
+): Promise<boolean> => {
   const rawText = getESCPOSData(printData);
-  return printRawNativeBluetooth(rawText, toast);
+  const textBytes = new TextEncoder().encode(rawText);
+
+  // Check if store logo printing is enabled and logo exists
+  if (printData.storeSettings?.printLogo && printData.storeSettings?.logo) {
+    try {
+      const logoBytes = await convertBase64ToEscPosImage(printData.storeSettings.logo);
+      if (logoBytes) {
+        // Center alignment = [27, 97, 1] (ESC a 1), line feed = [10] (\n)
+        const alignCenter = new Uint8Array([27, 97, 1]);
+        const lineFeed = new Uint8Array([10]);
+
+        const finalBytes = new Uint8Array(
+          alignCenter.length + logoBytes.length + lineFeed.length + textBytes.length
+        );
+        finalBytes.set(alignCenter, 0);
+        finalBytes.set(logoBytes, alignCenter.length);
+        finalBytes.set(lineFeed, alignCenter.length + logoBytes.length);
+        finalBytes.set(textBytes, alignCenter.length + logoBytes.length + lineFeed.length);
+
+        return printRawNativeBluetooth(finalBytes, toast);
+      }
+    } catch (err) {
+      console.error('Failed to convert and print logo:', err);
+    }
+  }
+
+  return printRawNativeBluetooth(textBytes, toast);
 };

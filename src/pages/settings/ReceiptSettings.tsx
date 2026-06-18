@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import LockedPage from '@/components/LockedPage';
@@ -17,16 +18,18 @@ export default function ReceiptSettings() {
   const { can } = useAuth();
   const storeSettings = useLiveQuery(() => db.storeSettings.toCollection().first());
   const [footerText, setFooterText] = useState('');
+  const [printLogo, setPrintLogo] = useState(false);
 
   // Sync state with db loaded value
   useEffect(() => {
     if (storeSettings) {
       setFooterText(storeSettings.receiptFooter ?? '');
+      setPrintLogo(storeSettings.printLogo ?? false);
     }
   }, [storeSettings]);
 
   if (!can('manage_store_settings')) {
-    return <LockedPage title={t('masterData.receiptFooter.title')} permissionLabel={t('masterData.theme.permissionLabel')} />;
+    return <LockedPage title={t('receiptSettings.title')} permissionLabel={t('masterData.theme.permissionLabel')} />;
   }
 
   const handleSave = async () => {
@@ -34,10 +37,11 @@ export default function ReceiptSettings() {
     try {
       await db.storeSettings.update(storeSettings.id, {
         receiptFooter: footerText.trim(),
+        printLogo,
       });
-      toast.success(t('masterData.receiptFooter.saveSuccess'));
+      toast.success(t('receiptSettings.saveSuccess'));
     } catch {
-      toast.error('Gagal menyimpan pengaturan');
+      toast.error(t('receiptSettings.saveFailed'));
     }
   };
 
@@ -52,15 +56,35 @@ export default function ReceiptSettings() {
         </Link>
         <h1 className="text-xl font-bold flex items-center gap-2">
           <Receipt className="w-5 h-5 text-primary" />
-          {t('masterData.receiptFooter.title')}
+          {t('receiptSettings.title')}
         </h1>
       </div>
 
       {/* Editor Card */}
       <Card className="border-0 shadow-sm">
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-4 space-y-5">
+          {/* Logo Toggle */}
+          <div className="flex items-start justify-between gap-4 pb-4 border-b border-border/50">
+            <div className="space-y-0.5">
+              <Label htmlFor="print-logo-switch" className="text-sm font-semibold cursor-pointer">
+                {t('receiptSettings.printLogoLabel')}
+              </Label>
+              <p className="text-[10px] text-muted-foreground leading-normal">
+                {t('receiptSettings.printLogoDescription')}
+              </p>
+            </div>
+            <Switch
+              id="print-logo-switch"
+              checked={printLogo}
+              onCheckedChange={setPrintLogo}
+            />
+          </div>
+
+          {/* Footer Input */}
           <div className="space-y-1.5">
-            <Label htmlFor="receipt-footer-input">{t('masterData.receiptFooter.title')}</Label>
+            <Label htmlFor="receipt-footer-input" className="text-sm font-semibold">
+              {t('receiptSettings.footerLabel')}
+            </Label>
             <Input
               id="receipt-footer-input"
               value={footerText}
@@ -88,6 +112,18 @@ export default function ReceiptSettings() {
         </span>
         <Card className="border border-dashed border-border/80 bg-white dark:bg-zinc-900 shadow-inner rounded-xl overflow-hidden">
           <CardContent className="p-6 font-mono text-[11px] text-zinc-700 dark:text-zinc-300 space-y-4">
+            
+            {/* Logo Preview */}
+            {printLogo && storeSettings?.logo && (
+              <div className="flex justify-center mb-2">
+                <img
+                  src={storeSettings.logo}
+                  alt="Store Logo"
+                  className="w-12 h-12 object-contain filter grayscale contrast-125"
+                />
+              </div>
+            )}
+
             <div className="text-center space-y-1 opacity-55">
               <p className="font-bold text-xs">TOKO MAJU JAYA</p>
               <p>Tangerang</p>

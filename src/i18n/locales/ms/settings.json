@@ -107,10 +107,10 @@
       "description": "{{count}} unit · pcs, kg, hidangan, dll"
     },
     "receiptFooter": {
-      "title": "Footer Resit",
-      "description": "Sediakan teks di bawah resit transaksi",
+      "title": "Tetapan Resit",
+      "description": "Sediakan teks footer resit dan pilihan pencetakan logo",
       "placeholder": "Contoh: Terima kasih atas kunjungan anda!",
-      "saveSuccess": "Footer resit disimpan"
+      "saveSuccess": "Tetapan resit disimpan"
     },
     "stockOpname": {
       "title": "Stock Opname",
@@ -840,5 +840,13 @@
       "saveFailed": "Gagal menyelesaikan stock opname",
       "notesPlaceholder": "Nota sesi opname (pilihan)"
     }
+  },
+  "receiptSettings": {
+    "title": "Tetapan Resit",
+    "printLogoLabel": "Cetak Logo Kedai",
+    "printLogoDescription": "Cetak logo kedai di bahagian paling atas resit fizikal. Pastikan pencetak thermal anda menyokong pencetakan imej/bitmap.",
+    "footerLabel": "Teks Footer Resit",
+    "saveSuccess": "Tetapan resit berjaya disimpan",
+    "saveFailed": "Gagal menyimpan tetapan resit"
   }
 }

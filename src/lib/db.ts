@@ -268,6 +268,7 @@ export interface StoreSettings {
   lastCloudBackupAt?: Date | null; // last successful upload to cloud
   allowDebt?: boolean; // opt-in pembayaran sebagian/seluruhnya sebagai hutang
   cloudStoreId?: string | null; // cloud store ID yang di-bind ke device ini untuk sync
+  printLogo?: boolean; // toggle to print store logo on ESC/POS receipt
 }
 
 // === Database ===
@@ -741,6 +742,7 @@ export async function seedDefaultData() {
       address: '',
       phone: '',
       receiptFooter: 'Terima kasih atas kunjungan Anda!',
+      printLogo: false,
       onboardingDone: false,
       lastBackupAt: null,
       deviceId: crypto.randomUUID(),
