@@ -8,7 +8,7 @@ import { db, type Product } from '@/lib/db';
  * Dipisah dari komponen UI supaya logika yang sama tidak terduplikasi.
  */
 
-export const BACKUP_VERSION = 6;
+export const BACKUP_VERSION = 7;
 
 // Bentuk longgar — file backup bisa berasal dari versi lama (v1–v6).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +36,8 @@ export async function buildBackupData() {
     expenses: await db.expenses.toArray(),
     debts: await db.debts.toArray(),
     debtPayments: await db.debtPayments.toArray(),
+    stockOpnames: await db.stockOpnames.toArray(),
+    stockOpnameItems: await db.stockOpnameItems.toArray(),
   };
 }
 
@@ -83,6 +85,10 @@ async function clearAllTables(includeConditional: BackupData) {
   if (Array.isArray(includeConditional.customers)) await db.customers.clear();
   await db.debts.clear();
   await db.debtPayments.clear();
+  if (Array.isArray(includeConditional.stockOpnames) || Array.isArray(includeConditional.stockOpnameItems)) {
+    await db.stockOpnames.clear();
+    await db.stockOpnameItems.clear();
+  }
 }
 
 /**
@@ -111,6 +117,8 @@ export async function restoreFromBackupData(data: unknown): Promise<void> {
     expenses: await db.expenses.toArray(),
     debts: await db.debts.toArray(),
     debtPayments: await db.debtPayments.toArray(),
+    stockOpnames: await db.stockOpnames.toArray(),
+    stockOpnameItems: await db.stockOpnameItems.toArray(),
   };
 
   try {
@@ -136,6 +144,8 @@ export async function restoreFromBackupData(data: unknown): Promise<void> {
     if (data.expenses?.length) await db.expenses.bulkAdd(data.expenses);
     if (data.debts?.length) await db.debts.bulkAdd(data.debts);
     if (data.debtPayments?.length) await db.debtPayments.bulkAdd(data.debtPayments);
+    if (data.stockOpnames?.length) await db.stockOpnames.bulkAdd(data.stockOpnames);
+    if (data.stockOpnameItems?.length) await db.stockOpnameItems.bulkAdd(data.stockOpnameItems);
 
     // Units (v3+ backup) atau diturunkan dari produk (backup v1/v2).
     if (Array.isArray(data.units) && data.units.length > 0) {
@@ -205,6 +215,8 @@ export async function restoreFromBackupData(data: unknown): Promise<void> {
       await db.customers.clear();
       await db.debts.clear();
       await db.debtPayments.clear();
+      await db.stockOpnames.clear();
+      await db.stockOpnameItems.clear();
 
       if (snapshot.categories.length) await db.categories.bulkAdd(snapshot.categories);
       if (snapshot.products.length) await db.products.bulkAdd(snapshot.products);
@@ -223,6 +235,8 @@ export async function restoreFromBackupData(data: unknown): Promise<void> {
       if (snapshot.expenses.length) await db.expenses.bulkAdd(snapshot.expenses);
       if (snapshot.debts.length) await db.debts.bulkAdd(snapshot.debts);
       if (snapshot.debtPayments.length) await db.debtPayments.bulkAdd(snapshot.debtPayments);
+      if (snapshot.stockOpnames.length) await db.stockOpnames.bulkAdd(snapshot.stockOpnames);
+      if (snapshot.stockOpnameItems.length) await db.stockOpnameItems.bulkAdd(snapshot.stockOpnameItems);
     } catch {
       throw new Error('Import gagal dan rollback gagal. Coba restore dari file backup.');
     }
