@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Settings, Store, CreditCard, Tag, Download, Edit2, Info, Truck, ArrowDownToLine, ArrowUpFromLine, ChevronRight, Receipt, Palette, HardDrive, Package, Camera, X, Ruler, Users as UsersIcon, ShieldCheck, LogOut, Smartphone, CheckCircle2, Globe, Share2, Wallet, Sparkles, LineChart, Cloud, HandCoins, ClipboardCheck } from 'lucide-react';
+import { Settings, Store, CreditCard, Tag, Download, Edit2, Info, Truck, ArrowDownToLine, ArrowUpFromLine, ChevronRight, Receipt, Palette, HardDrive, Package, Camera, X, Ruler, Users as UsersIcon, ShieldCheck, LogOut, Smartphone, CheckCircle2, Globe, Share2, Wallet, Sparkles, LineChart, Cloud, HandCoins, ClipboardCheck, LayoutGrid } from 'lucide-react';
 import WhatsNewModal from '@/components/WhatsNewModal';
 import { FEATURES, getUnseenFeatures } from '@/lib/whats-new';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { compressImage } from '@/lib/image-utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useCloudAuth } from '@/hooks/use-cloud-auth';
@@ -61,6 +62,25 @@ export default function Pengaturan() {
 
   // Analytics opt-out (default: tracking on)
   const [analyticsOn, setAnalyticsOn] = useState(isAnalyticsEnabled());
+
+  // Cashier layout mode settings (default: 'grid')
+  const [cashierLayoutMode, setCashierLayoutModeState] = useState<'grid' | 'rows'>(() => {
+    try {
+      return (localStorage.getItem('kg_cashier_layout_mode') as 'grid' | 'rows') || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+
+  const handleCashierLayoutModeChange = (val: 'grid' | 'rows') => {
+    setCashierLayoutModeState(val);
+    try {
+      localStorage.setItem('kg_cashier_layout_mode', val);
+      toast.success(t('toast.saveSuccess'));
+    } catch {
+      toast.error(t('common:error') || 'Gagal');
+    }
+  };
 
   // Native Bluetooth printer settings
   const [defaultPrinter, setDefaultPrinter] = useState<BluetoothPrinter | null>(() => getDefaultBluetoothPrinter());
@@ -567,7 +587,7 @@ export default function Pengaturan() {
         )}
 
         {can('manage_categories_payments') && (
-          <Link to="/settings/payment-methods">
+          <Link to="/settings/payment-methods" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><CreditCard className="w-4 h-4" /></div>
@@ -579,7 +599,7 @@ export default function Pengaturan() {
         )}
 
         {can('manage_categories_payments') && (
-          <Link to="/settings/product-category">
+          <Link to="/settings/product-category" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-accent/10 text-accent flex items-center justify-center"><Tag className="w-4 h-4" /></div>
@@ -591,7 +611,7 @@ export default function Pengaturan() {
         )}
 
         {can('manage_categories_payments') && (
-          <Link to="/settings/expense-category">
+          <Link to="/settings/expense-category" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-warning/10 text-warning flex items-center justify-center"><Wallet className="w-4 h-4" /></div>
@@ -602,7 +622,7 @@ export default function Pengaturan() {
           </Link>
         )}
 
-        <Link to="/settings/units">
+        <Link to="/settings/units" className="block">
           <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
             <CardContent className="p-3 flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Ruler className="w-4 h-4" /></div>
@@ -613,7 +633,7 @@ export default function Pengaturan() {
         </Link>
 
         {can('manage_store_settings') && (
-          <Link to="/settings/receipt">
+          <Link to="/settings/receipt" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><Receipt className="w-4 h-4" /></div>
@@ -625,7 +645,7 @@ export default function Pengaturan() {
         )}
 
         {can('manage_stock_inout') && (
-          <Link to="/settings/stock-opname">
+          <Link to="/settings/stock-opname" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center"><ClipboardCheck className="w-4 h-4" /></div>
@@ -637,7 +657,7 @@ export default function Pengaturan() {
         )}
 
         {can('manage_store_settings') && (
-          <Link to="/settings/theme">
+          <Link to="/settings/theme" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow mb-2">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-accent/10 text-accent flex items-center justify-center"><Palette className="w-4 h-4" /></div>
@@ -648,8 +668,31 @@ export default function Pengaturan() {
           </Link>
         )}
 
+        <Card className="border-0 shadow-sm mb-2">
+          <CardContent className="p-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <LayoutGrid className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">{t('masterData.cashierLayout.title')}</p>
+                <p className="text-[10px] text-muted-foreground">{t('masterData.cashierLayout.description')}</p>
+              </div>
+            </div>
+            <Select value={cashierLayoutMode} onValueChange={handleCashierLayoutModeChange}>
+              <SelectTrigger className="w-[140px] h-9 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="grid">{t('masterData.cashierLayout.grid')}</SelectItem>
+                <SelectItem value="rows">{t('masterData.cashierLayout.rows')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
         {can('manage_backup') && (
-          <Link to="/settings/backup">
+          <Link to="/settings/backup" className="block">
             <Card className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
               <CardContent className="p-3 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-success/10 text-success flex items-center justify-center"><Download className="w-4 h-4" /></div>

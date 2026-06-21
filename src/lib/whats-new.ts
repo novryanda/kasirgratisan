@@ -1,158 +1,121 @@
-import { Wallet, AlertTriangle, Infinity as InfinityIcon, Users as UsersIcon, FileSpreadsheet, PackageSearch, Sparkles, Cloud, Printer, HandCoins, Receipt, ClipboardCheck, type LucideIcon } from 'lucide-react';
+import { Wallet, AlertTriangle, Infinity as InfinityIcon, Users as UsersIcon, FileSpreadsheet, PackageSearch, Sparkles, Cloud, Printer, HandCoins, Receipt, ClipboardCheck, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { db } from './db';
 
 /**
  * Static catalog of "What's New" announcements.
+ * All texts (titles, descriptions, and CTA labels) are localized in translation files
+ * under the `whatsNewFeatures.[id]` key path.
  *
  * IMPORTANT:
- *  - Each `id` MUST be unique and MUST NEVER change once shipped — once a user
- *    dismisses an entry, that id is recorded in their storeSettings. Renaming
- *    the id will cause the entry to reappear.
- *  - Order this array newest-first so the modal slideshow starts with the
- *    most recent entry.
- *  - Date prefix in `id` (YYYY-MM-...) keeps things human-sortable in the DB.
+ *  - Each `id` MUST be unique and MUST NEVER change once shipped.
+ *  - Order this array newest-first so the modal slideshow starts with the most recent entry.
  */
 
 export interface WhatsNewFeature {
   id: string;
-  title: string;
-  description: string;
   icon: LucideIcon;
   /** Tailwind class pair, e.g. "text-warning bg-warning/10" */
   iconColor: string;
   publishedAt: string; // ISO date (YYYY-MM-DD), display only
   cta?: {
-    label: string;
     to: string; // internal route
   };
 }
 
 export const FEATURES: WhatsNewFeature[] = [
   {
+    id: '2026-06-cashier-layout',
+    icon: LayoutGrid,
+    iconColor: 'text-primary bg-primary/10',
+    publishedAt: '2026-06-21',
+    cta: { to: '/settings' },
+  },
+  {
     id: '2026-06-import-excel',
-    title: 'Impor Produk via Excel',
-    description:
-      'Kini kamu bisa menambahkan produk baru secara massal menggunakan file Excel (.xlsx) dengan alur validasi. Unduh template standar yang dilengkapi referensi kategori & satuan, unggah berkas, tinjau status data (valid atau error) di preview, lalu simpan seluruh produk valid sekaligus.',
     icon: FileSpreadsheet,
     iconColor: 'text-success bg-success/10',
     publishedAt: '2026-06-20',
-    cta: { label: 'Atur Produk', to: '/products' },
+    cta: { to: '/products' },
   },
   {
     id: '2026-06-stock-opname',
-    title: 'Stock Opname (Penyesuaian Stok)',
-    description:
-      'Kini kamu bisa melakukan audit stok fisik produk secara periodik. Sistem mendukung pencocokan stok fisik secara manual atau massal lewat unduh-unggah lembar kerja Excel. Selisih stok akan langsung disesuaikan secara otomatis dan dicatat ke dalam mutasi laporan stok.',
     icon: ClipboardCheck,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-06-18',
-    cta: { label: 'Mulai Stock Opname', to: '/settings/stock-opname' },
+    cta: { to: '/settings/stock-opname' },
   },
   {
     id: '2026-06-receipt-footer',
-    title: 'Kustomisasi Footer Struk',
-    description:
-      'Kini kamu dapat mengubah teks di bagian bawah struk transaksi secara dinamis sesuai kebutuhan tokomu. Pengaturan ini bisa diakses melalui menu baru "Footer Struk" di halaman Pengaturan. Perubahan akan langsung tercermin secara real-time pada pratinjau struk.',
     icon: Receipt,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-06-18',
-    cta: { label: 'Atur Footer Struk', to: '/settings/receipt' },
+    cta: { to: '/settings/receipt' },
   },
   {
     id: '2026-06-customer-debts',
-    title: 'Pembayaran Hutang Pelanggan',
-    description:
-      'Kini kasir dapat menerima pembayaran sebagian atau seluruhnya sebagai hutang untuk pelanggan terpilih. Catat cicilan pembayaran hutang secara bertahap, pantau sisa saldo piutang, dan lihat riwayat pembayaran lengkap langsung dari menu baru Daftar Hutang.',
     icon: HandCoins,
     iconColor: 'text-warning bg-warning/10',
     publishedAt: '2026-06-15',
-    cta: { label: 'Buka Daftar Hutang', to: '/debts' },
+    cta: { to: '/debts' },
   },
   {
     id: '2026-06-print-daily-closing',
-    title: 'Cetak Laporan Closing Harian',
-    description:
-      'Kini kamu bisa mempratinjau, mengunduh, membagikan, dan mencetak laporan closing penjualan harian langsung ke printer thermal Bluetooth. Halaman Laporan kini otomatis membuka tab Harian secara default, lengkap dengan indikator jika belum ada transaksi di hari tersebut.',
     icon: Printer,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-06-15',
-    cta: { label: 'Buka Laporan', to: '/reports' },
+    cta: { to: '/reports' },
   },
   {
     id: '2026-06-cloud-backup',
-    title: 'Backup Otomatis ke Cloud',
-    description:
-      'Data toko kini bisa dibackup otomatis ke cloud yang aman — tetap aman walau HP hilang, rusak, atau ganti perangkat. Login dengan akun Google, pilih paket langganan, lalu atur jadwal backup otomatis. Kamu juga bisa restore data langsung dari cloud kapan saja.',
     icon: Cloud,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-06-11',
-    cta: { label: 'Aktifkan Cloud Backup', to: '/settings/cloud-backup' },
+    cta: { to: '/settings/cloud-backup' },
   },
   {
     id: '2026-06-rebrand-freekasir',
-    title: 'Wajah Baru: FreeKasir',
-    description:
-      'Aplikasi ini kini bernama FreeKasir dengan tampilan dan warna baru yang lebih segar. Fungsi & data kamu tetap sama, tidak ada yang berubah. Suka warna lain? Kamu tetap bisa pilih tema favoritmu di Pengaturan → Warna Tema.',
     icon: Sparkles,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-06-11',
-    cta: { label: 'Ganti Warna Tema', to: '/settings/theme' },
+    cta: { to: '/settings/theme' },
   },
   {
     id: '2026-06-stock-search-scan',
-    title: 'Cari & Scan Produk di Stock In/Out',
-    description:
-      'Input stok kini lebih cepat. Di halaman Stock In dan Stock Out, pilih produk lewat pencarian berdasarkan nama, SKU, atau barcode — lengkap dengan opsi scan kamera seperti di kasir. Kolom Jumlah dan Harga Beli juga otomatis diformat ribuan (10.000) agar mudah dibaca.',
     icon: PackageSearch,
     iconColor: 'text-success bg-success/10',
     publishedAt: '2026-06-10',
-    cta: { label: 'Buka Stock In', to: '/stock-in' },
+    cta: { to: '/stock-in' },
   },
   {
     id: '2026-06-export-excel',
-    title: 'Export Laporan ke Excel',
-    description:
-      'Kamu bisa export laporan ke file Excel (.xlsx) langsung dari halaman Laporan. Klik tombol Export, pilih rentang tanggal, dan dapatkan file berisi ringkasan laba-rugi, daftar transaksi, detail item terjual, dan pengeluaran — siap diolah atau diarsipkan.',
     icon: FileSpreadsheet,
     iconColor: 'text-success bg-success/10',
     publishedAt: '2026-06-09',
-    cta: { label: 'Buka Laporan', to: '/reports' },
+    cta: { to: '/reports' },
   },
   {
     id: '2026-05-customers',
-    title: 'Data Pelanggan',
-    description:
-      'Kelola data pelanggan dan hubungkan ke transaksi. Di kasir kamu bisa cari, pilih, atau buat pelanggan baru langsung saat jualan (tetap opsional). Buka detail pelanggan untuk lihat riwayat transaksinya.',
     icon: UsersIcon,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-05-30',
-    cta: { label: 'Kelola Pelanggan', to: '/customers' },
+    cta: { to: '/customers' },
   },
   {
     id: '2026-05-unmanaged-stock',
-    title: 'Produk Tanpa Stok',
-    description:
-      'Sekarang kamu bisa menjual produk tanpa mengelola stok, cocok untuk jasa atau makanan yang dibuat dadakan. Aktifkan lewat tombol "Kelola Stok" saat menambah/mengedit produk. Produk ini akan selalu tersedia di kasir.',
     icon: InfinityIcon,
     iconColor: 'text-primary bg-primary/10',
     publishedAt: '2026-05-29',
-    cta: { label: 'Atur Produk', to: '/products' },
+    cta: { to: '/products' },
   },
   {
     id: '2026-05-expense-tracking',
-    title: 'Pencatatan Pengeluaran',
-    description:
-      'Catat biaya operasional toko (listrik, gaji, sewa, dll) dan lihat laba bersih sesungguhnya di laporan. Cashflow toko jadi lengkap dalam satu app.',
     icon: Wallet,
     iconColor: 'text-warning bg-warning/10',
     publishedAt: '2026-05-25',
-    cta: { label: 'Coba Sekarang', to: '/expenses' },
+    cta: { to: '/expenses' },
   },
   {
     id: '2026-05-error-boundary',
-    title: 'Pesan Error yang Lebih Jelas',
-    description:
-      'Kalau aplikasi mengalami error, sekarang muncul pesan dan detail yang bisa kamu salin untuk dilaporkan ke developer. Tidak ada lagi blank screen tanpa info.',
     icon: AlertTriangle,
     iconColor: 'text-destructive bg-destructive/10',
     publishedAt: '2026-05-24',

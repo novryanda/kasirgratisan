@@ -124,6 +124,12 @@
     "backup": {
       "title": "Backup & Restore",
       "description": "Export / import data kedai (JSON)"
+    },
+    "cashierLayout": {
+      "title": "Tampilan Kasir",
+      "description": "Pilih tata letak grid (kad) atau baris (senarai) untuk senarai produk",
+      "grid": "Grid (Kad Besar)",
+      "rows": "Baris (Senarai Ringkas)"
     }
   },
   "bluetoothPrinter": {
@@ -170,6 +176,7 @@
     "saveSuccess": "Info kedai disimpan"
   },
   "toast": {
+    "saveSuccess": "Tetapan disimpan",
     "noPairedDevices": "Tiada peranti Bluetooth yang dipasangkan",
     "loadPrintersFailed": "Gagal memuatkan senarai pencetak",
     "printerDefaultSet": "Pencetak lalai: {{name}}",

@@ -108,9 +108,9 @@ export default function WhatsNewModal({
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {format(new Date(current.publishedAt), 'd MMMM yyyy', { locale: dateLocale })}
               </p>
-              <h3 className="text-lg font-bold tracking-tight">{current.title}</h3>
+              <h3 className="text-lg font-bold tracking-tight">{t(`whatsNewFeatures.${current.id}.title`)}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {current.description}
+                {t(`whatsNewFeatures.${current.id}.description`)}
               </p>
             </div>
           </div>
@@ -148,7 +148,7 @@ export default function WhatsNewModal({
 
             {current.cta ? (
               <Button onClick={handleCta} className="flex-1 h-11 text-sm font-semibold">
-                {current.cta.label}
+                {t(`whatsNewFeatures.${current.id}.ctaLabel`)}
               </Button>
             ) : isLast ? (
               <Button onClick={handleClose} className="flex-1 h-11 text-sm font-semibold">

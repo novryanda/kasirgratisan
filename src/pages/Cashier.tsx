@@ -98,6 +98,15 @@ export default function Kasir() {
   const [scanInput, setScanInput] = useState('');
   const scanInputRef = useRef<HTMLInputElement>(null);
 
+  // Cashier layout mode settings (default: 'grid')
+  const [layoutMode] = useState<'grid' | 'rows'>(() => {
+    try {
+      return (localStorage.getItem('kg_cashier_layout_mode') as 'grid' | 'rows') || 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+
   const products = useLiveQuery(() => db.products.where('isDeleted').equals(0).toArray());
   const categories = useLiveQuery(() => db.categories.where('isDeleted').equals(0).toArray());
   const paymentMethods = useLiveQuery(() => db.paymentMethods.toArray());
@@ -716,6 +725,40 @@ export default function Kasir() {
                 ? t('cashier.empty.outOfStock')
                 : t('cashier.empty.noProducts')}
             </p>
+          </div>
+        ) : layoutMode === 'rows' ? (
+          <div className="space-y-1.5 px-0.5 pb-2">
+            {filtered.map(p => (
+              <Card key={p.id} className="border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]" onClick={() => addToCart(p)}>
+                <CardContent className="p-2 flex items-center gap-3">
+                  <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                    {p.photo ? (
+                      <img src={p.photo} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <PackageIcon className="w-5 h-5 text-muted-foreground/30" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-xs font-semibold truncate">{p.name}</h3>
+                      <p className="text-xs font-bold text-primary shrink-0">{rp(p.price)}</p>
+                    </div>
+                    {p.description && (
+                      <p className="text-[10px] text-muted-foreground truncate" title={p.description}>
+                        {p.description}
+                      </p>
+                    )}
+                    <div className="flex justify-between items-center mt-1">
+                      {isStockManaged(p) ? (
+                        <p className="text-[10px] text-muted-foreground">{t('cashier.productCard.stock', { stock: p.stock, unit: p.unit })}</p>
+                      ) : (
+                        <p className="text-[10px] text-primary">{t('cashier.productCard.alwaysAvailable')}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">

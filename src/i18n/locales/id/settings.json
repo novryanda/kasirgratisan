@@ -159,6 +159,12 @@
     "backup": {
       "title": "Backup & Restore",
       "description": "Export / import data toko (JSON)"
+    },
+    "cashierLayout": {
+      "title": "Tampilan Kasir",
+      "description": "Pilih mode grid (kartu) atau baris (list) untuk daftar produk",
+      "grid": "Grid (Kartu Besar)",
+      "rows": "Baris (Simpel)"
     }
   },
   "bluetoothPrinter": {
@@ -205,6 +211,7 @@
     "saveSuccess": "Info toko disimpan"
   },
   "toast": {
+    "saveSuccess": "Pengaturan disimpan",
     "noPairedDevices": "Belum ada perangkat Bluetooth yang dipasangkan",
     "loadPrintersFailed": "Gagal membaca daftar printer",
     "printerDefaultSet": "Printer default: {{name}}",

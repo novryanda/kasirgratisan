@@ -27,11 +27,11 @@ interface SaveAndShareOptions {
  * Downloads a file on the web, or saves and shares it using native share sheet on Capacitor Android/iOS.
  * This bypasses WebView download restrictions on Android.
  *
- * @param data ArrayBuffer, data URL string (e.g. image/png;base64), or normal text string
+ * @param data ArrayBuffer, ArrayBufferView (like Uint8Array), data URL string (e.g. image/png;base64), or normal text string
  * @param options configuration options for sharing/downloading
  */
 export async function downloadOrShareFile(
-  data: ArrayBuffer | string,
+  data: ArrayBuffer | ArrayBufferView | string,
   options: SaveAndShareOptions
 ): Promise<void> {
   const {
@@ -42,23 +42,32 @@ export async function downloadOrShareFile(
     mimeType = 'application/octet-stream',
   } = options;
 
+  let normalizedData = data;
+  if (ArrayBuffer.isView(normalizedData)) {
+    // Extract ArrayBuffer correctly from views like Uint8Array
+    normalizedData = normalizedData.buffer.slice(
+      normalizedData.byteOffset,
+      normalizedData.byteOffset + normalizedData.byteLength
+    );
+  }
+
   if (Capacitor.isNativePlatform()) {
     let base64Data = '';
     let isUtf8 = false;
 
-    if (data instanceof ArrayBuffer) {
-      base64Data = arrayBufferToBase64(data);
-    } else if (data.startsWith('data:')) {
+    if (normalizedData instanceof ArrayBuffer) {
+      base64Data = arrayBufferToBase64(normalizedData);
+    } else if (typeof normalizedData === 'string' && normalizedData.startsWith('data:')) {
       // Data URL (e.g., data:image/png;base64,...)
-      const commaIndex = data.indexOf(',');
+      const commaIndex = normalizedData.indexOf(',');
       if (commaIndex !== -1) {
-        base64Data = data.substring(commaIndex + 1);
+        base64Data = normalizedData.substring(commaIndex + 1);
       } else {
-        base64Data = data;
+        base64Data = normalizedData;
       }
-    } else {
+    } else if (typeof normalizedData === 'string') {
       // Plain text (e.g. JSON backup)
-      base64Data = data;
+      base64Data = normalizedData;
       isUtf8 = true;
     }
 
@@ -80,13 +89,13 @@ export async function downloadOrShareFile(
 
   // Web fallback: download using standard browser anchor tag
   let blob: Blob;
-  if (data instanceof ArrayBuffer) {
-    blob = new Blob([data], { type: mimeType });
-  } else if (data.startsWith('data:')) {
-    const response = await fetch(data);
+  if (normalizedData instanceof ArrayBuffer) {
+    blob = new Blob([normalizedData], { type: mimeType });
+  } else if (typeof normalizedData === 'string' && normalizedData.startsWith('data:')) {
+    const response = await fetch(normalizedData);
     blob = await response.blob();
   } else {
-    blob = new Blob([data], { type: mimeType });
+    blob = new Blob([normalizedData], { type: mimeType });
   }
 
   const url = URL.createObjectURL(blob);

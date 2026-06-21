@@ -159,6 +159,12 @@
     "backup": {
       "title": "Backup & Restore",
       "description": "Export / import store data (JSON)"
+    },
+    "cashierLayout": {
+      "title": "Cashier Layout",
+      "description": "Choose grid (cards) or rows (list) layout for product list",
+      "grid": "Grid (Large Cards)",
+      "rows": "Rows (Simple List)"
     }
   },
   "bluetoothPrinter": {
@@ -205,6 +211,7 @@
     "saveSuccess": "Store info saved"
   },
   "toast": {
+    "saveSuccess": "Settings saved",
     "noPairedDevices": "No paired Bluetooth devices",
     "loadPrintersFailed": "Failed to load printer list",
     "printerDefaultSet": "Default printer: {{name}}",
