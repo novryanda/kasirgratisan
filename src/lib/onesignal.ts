@@ -30,9 +30,27 @@ declare global {
 const APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID as string | undefined;
 
 let initialized = false;
+let initPromise: Promise<any> | null = null;
+
+async function ensureNativeOneSignal(): Promise<any> {
+  if (!APP_ID) {
+    throw new Error('OneSignal App ID is not configured');
+  }
+
+  if (!initPromise) {
+    initPromise = (async () => {
+      const { default: OneSignal } = await import('@onesignal/capacitor-plugin');
+      await OneSignal.initialize({ appId: APP_ID });
+      return OneSignal;
+    })();
+  }
+
+  return initPromise;
+}
 
 /** Apakah platform mendukung push notification. */
 export function isPushSupported(): boolean {
+  if (!APP_ID) return false;
   if (isNativePlatform()) return true;
   return (
     typeof window !== 'undefined' &&
@@ -64,15 +82,9 @@ export function initOneSignal() {
   initialized = true;
 
   if (isNativePlatform()) {
-    import('@onesignal/capacitor-plugin')
-      .then(({ default: OneSignal }) => {
-        OneSignal.initialize({ appId: APP_ID }).catch((err) => {
-          console.error('Gagal inisialisasi native OneSignal:', err);
-        });
-      })
-      .catch((err) => {
-        console.error('Gagal memuat @onesignal/capacitor-plugin:', err);
-      });
+    ensureNativeOneSignal().catch((err) => {
+      console.error('Gagal inisialisasi native OneSignal:', err);
+    });
     return;
   }
 
@@ -96,15 +108,15 @@ export function initOneSignal() {
 
 /** Kaitkan device ke user (External ID = profile.user.id, mis. "google-12345"). */
 export function oneSignalLogin(externalId: string) {
+  if (!APP_ID) return;
+
   if (isNativePlatform()) {
-    import('@onesignal/capacitor-plugin')
-      .then(({ default: OneSignal }) => {
-        OneSignal.login(externalId).catch((err) => {
-          console.error('Gagal login native OneSignal:', err);
-        });
+    ensureNativeOneSignal()
+      .then((OneSignal) => {
+        return OneSignal.login(externalId);
       })
       .catch((err) => {
-        console.error('Gagal memuat @onesignal/capacitor-plugin:', err);
+        console.error('Gagal login native OneSignal:', err);
       });
     return;
   }
@@ -113,15 +125,15 @@ export function oneSignalLogin(externalId: string) {
 
 /** Lepas kaitan device dari user (saat logout). */
 export function oneSignalLogout() {
+  if (!APP_ID) return;
+
   if (isNativePlatform()) {
-    import('@onesignal/capacitor-plugin')
-      .then(({ default: OneSignal }) => {
-        OneSignal.logout().catch((err) => {
-          console.error('Gagal logout native OneSignal:', err);
-        });
+    ensureNativeOneSignal()
+      .then((OneSignal) => {
+        return OneSignal.logout();
       })
       .catch((err) => {
-        console.error('Gagal memuat @onesignal/capacitor-plugin:', err);
+        console.error('Gagal logout native OneSignal:', err);
       });
     return;
   }
@@ -130,17 +142,29 @@ export function oneSignalLogout() {
 
 /** Munculkan prompt izin notifikasi browser/native (dipanggil setelah user setuju di modal). */
 export function requestPushPermission() {
+  if (!APP_ID) return;
+
   if (isNativePlatform()) {
-    import('@onesignal/capacitor-plugin')
-      .then(({ default: OneSignal }) => {
-        OneSignal.Notifications.requestPermission(true).catch((err) => {
-          console.error('Gagal meminta izin notifikasi native:', err);
-        });
+    ensureNativeOneSignal()
+      .then((OneSignal) => {
+        return OneSignal.Notifications.requestPermission(true);
       })
       .catch((err) => {
-        console.error('Gagal memuat @onesignal/capacitor-plugin:', err);
+        console.error('Gagal meminta izin notifikasi native:', err);
       });
     return;
   }
   withOneSignal((OneSignal) => OneSignal.Notifications.requestPermission());
+}
+
+/** Cek status izin notifikasi native (aman & terinisialisasi). */
+export async function checkPushPermissionNative(): Promise<boolean> {
+  if (!APP_ID) return true; // Anggap "sudah di-handle" jika tidak ada APP_ID
+  try {
+    const OneSignal = await ensureNativeOneSignal();
+    return await OneSignal.Notifications.hasPermission();
+  } catch (err) {
+    console.error('Gagal memeriksa izin notifikasi native:', err);
+    return true; // Anggap true jika error agar tidak memunculkan modal yang tidak berguna
+  }
 }
