@@ -18,6 +18,9 @@ import {
   Navigation,
   Check,
   ChevronsUpDown,
+  QrCode,
+  Download,
+  Printer,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +28,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import QRCode from 'qrcode';
 import {
   Command,
   CommandInput,
@@ -199,6 +210,11 @@ export default function CloudOnlineStoreSettings() {
   // Geolocation locating state
   const [locating, setLocating] = useState(false);
 
+  // QR Code states
+  const [qrUrl, setQrUrl] = useState<string>('');
+  const [templatedQrUrl, setTemplatedQrUrl] = useState<string>('');
+  const [hasTemplate, setHasTemplate] = useState<boolean>(false);
+
   // Leaflet map refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -243,6 +259,246 @@ export default function CloudOnlineStoreSettings() {
       setLoading(false);
     }
   }, [activeStoreId]);
+
+  // Generate QR Code URL
+  useEffect(() => {
+    if (store?.identifier) {
+      QRCode.toDataURL(
+        `https://market.freekasir.com/stores/${store.identifier}`,
+        {
+          width: 512,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        },
+        (err, url) => {
+          if (err) {
+            console.error('Gagal generate QR Code:', err);
+            return;
+          }
+          setQrUrl(url);
+        }
+      );
+    } else {
+      setQrUrl('');
+    }
+  }, [store?.identifier]);
+
+  // Generate Templated QR Code URL
+  useEffect(() => {
+    if (!store?.identifier || !qrUrl) {
+      setTemplatedQrUrl('');
+      setHasTemplate(false);
+      return;
+    }
+
+    const generateTemplatedQR = () => {
+      const imgTemplate = new Image();
+      imgTemplate.crossOrigin = 'anonymous';
+      
+      imgTemplate.onload = () => {
+        const imgQR = new Image();
+        imgQR.onload = () => {
+          const canvas = document.createElement('canvas');
+          
+          const width = imgTemplate.naturalWidth || 810;
+          const height = imgTemplate.naturalHeight || 1012.5;
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            // Draw template SVG
+            ctx.drawImage(imgTemplate, 0, 0, width, height);
+            
+            // Draw QR Code on top of it at the absolute coordinates
+            const scaleX = width / 810;
+            const scaleY = height / 1012.5;
+            
+            const qrX = 180 * scaleX;
+            const qrY = 181 * scaleY;
+            const qrWidth = 450 * scaleX;
+            const qrHeight = 450 * scaleY;
+            
+            ctx.drawImage(imgQR, qrX, qrY, qrWidth, qrHeight);
+            
+            try {
+              const pngUrl = canvas.toDataURL('image/png');
+              setTemplatedQrUrl(pngUrl);
+              setHasTemplate(true);
+            } catch (e) {
+              console.error('Gagal export canvas ke data URL:', e);
+              setHasTemplate(false);
+            }
+          }
+        };
+        imgQR.src = qrUrl;
+      };
+      
+      imgTemplate.onerror = () => {
+        console.error('Gagal memuat template SVG');
+        setHasTemplate(false);
+      };
+      
+      imgTemplate.src = '/qr-template.svg';
+    };
+
+    generateTemplatedQR();
+  }, [store?.identifier, qrUrl]);
+
+  const handleDownloadQR = () => {
+    if (!qrUrl) return;
+    const link = document.createElement('a');
+    link.href = qrUrl;
+    link.download = `qr-store-${store?.identifier || 'store'}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('QR Code berhasil diunduh.');
+  };
+
+  const downloadTemplatedQR = () => {
+    if (!templatedQrUrl) return;
+    const link = document.createElement('a');
+    link.href = templatedQrUrl;
+    link.download = `qr-store-template-${store?.identifier || 'store'}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('QR Code dengan template berhasil diunduh.');
+  };
+
+  const handlePrintQR = () => {
+    if (!qrUrl) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.');
+      return;
+    }
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print QR Code - \${store?.name || 'Toko'}</title>
+          <style>
+            body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              font-family: sans-serif;
+              background-color: #f9f9f9;
+            }
+            .container {
+              text-align: center;
+              border: 1px solid #e2e8f0;
+              padding: 40px;
+              border-radius: 24px;
+              background-color: #ffffff;
+              box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+              max-width: 400px;
+            }
+            img {
+              width: 280px;
+              height: 280px;
+              margin-bottom: 20px;
+            }
+            h1 {
+              margin: 10px 0 5px 0;
+              font-size: 22px;
+              color: #1e293b;
+              font-weight: 700;
+            }
+            p {
+              font-size: 13px;
+              color: #64748b;
+              margin: 0;
+              word-break: break-all;
+            }
+            .footer {
+              margin-top: 30px;
+              font-size: 11px;
+              color: #94a3b8;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <img src="\${qrUrl}" alt="QR Code" />
+            <h1>\${store?.name || 'Toko Online'}</h1>
+            <p>market.freekasir.com/stores/\${store?.identifier}</p>
+            <div class="footer">Dicetak melalui FreeKasir</div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() {
+                window.close();
+              }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  const handlePrintTemplatedQR = () => {
+    if (!templatedQrUrl) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.');
+      return;
+    }
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print QR Code Template - \${store?.name || 'Toko'}</title>
+          <style>
+            body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              font-family: sans-serif;
+              background-color: #f9f9f9;
+            }
+            .container {
+              max-width: 450px;
+              width: 90%;
+              text-align: center;
+            }
+            img {
+              width: 100%;
+              height: auto;
+              border-radius: 12px;
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <img src="\${templatedQrUrl}" alt="QR Code Template" />
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() {
+                window.close();
+              }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   // Load provinces list on mount
   const loadProvincesData = useCallback(async () => {
@@ -730,19 +986,87 @@ export default function CloudOnlineStoreSettings() {
 
               {/* Slug Info */}
               {store?.identifier && (
-                <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 space-y-1">
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-bold block">
-                    {t('cloudOnlineStore.identifier.slugInfo')}
-                  </span>
-                  <a
-                    href={`https://market.freekasir.com/${store.identifier}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
-                  >
-                    market.freekasir.com/{store.identifier}
-                    <ChevronRight className="w-3 h-3" />
-                  </a>
+                <div className="space-y-2">
+                  <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 space-y-1">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wide font-bold block">
+                      {t('cloudOnlineStore.identifier.slugInfo')}
+                    </span>
+                    <a
+                      href={`https://market.freekasir.com/stores/${store.identifier}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline font-bold flex items-center gap-1"
+                    >
+                      market.freekasir.com/stores/{store.identifier}
+                      <ChevronRight className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full h-10 text-xs gap-2 font-semibold border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+                      >
+                        <QrCode className="w-4 h-4 text-primary" />
+                        Cetak / Download QR Code
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md p-6">
+                      <DialogHeader className="space-y-1">
+                        <DialogTitle className="text-base font-bold flex items-center gap-2">
+                          <QrCode className="w-5 h-5 text-primary" />
+                          QR Code Toko Online
+                        </DialogTitle>
+                        <p className="text-xs text-muted-foreground text-left">
+                          {hasTemplate 
+                            ? 'QR Code telah berhasil digabungkan dengan template cetak Anda.' 
+                            : 'Scan QR Code ini untuk langsung membuka halaman toko online Anda di Market FreeKasir.'
+                          }
+                        </p>
+                      </DialogHeader>
+                      <div className="flex flex-col items-center justify-center py-4 bg-muted/30 rounded-2xl border border-dashed border-muted-foreground/20">
+                        {hasTemplate && templatedQrUrl ? (
+                          <div className="p-1 rounded-xl bg-white shadow-sm border max-w-[240px]">
+                            <img src={templatedQrUrl} alt="QR Code Template" className="max-h-72 object-contain" />
+                          </div>
+                        ) : qrUrl ? (
+                          <div className="bg-white p-3 rounded-xl shadow-sm border">
+                            <img src={qrUrl} alt="QR Code Toko" className="w-48 h-48" />
+                          </div>
+                        ) : (
+                          <div className="w-48 h-48 flex items-center justify-center text-muted-foreground">
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                          </div>
+                        )}
+                        <p className="text-xs font-semibold mt-3 text-primary truncate max-w-[280px]">
+                          market.freekasir.com/stores/{store.identifier}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={hasTemplate ? handlePrintTemplatedQR : handlePrintQR}
+                          disabled={hasTemplate ? !templatedQrUrl : !qrUrl}
+                          className="flex-1 h-10 text-xs gap-1.5"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                          Cetak QR
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={hasTemplate ? downloadTemplatedQR : handleDownloadQR}
+                          disabled={hasTemplate ? !templatedQrUrl : !qrUrl}
+                          className="flex-1 h-10 text-xs gap-1.5"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          Unduh QR
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
 
