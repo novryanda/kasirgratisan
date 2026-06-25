@@ -113,7 +113,8 @@
     "bluetoothUnavailable": "Bluetooth is not available in this browser. Use Chrome on Android.",
     "searchingPrinter": "Searching for Bluetooth printer...",
     "printSuccess": "Report printed successfully!",
-    "printFailed": "Failed to print. Make sure the Bluetooth printer is on."
+    "printFailed": "Failed to print. Make sure the Bluetooth printer is on.",
+    "reviewPromptWeb": "Please rate our app on Play Store!"
   },
   "survey": {
     "title": "What type of business do you run with FreeKasir?",

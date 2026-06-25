@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { isNativePlatform, printRawNativeBluetooth, getDailyReportESCPOSData, type DailyReportPrintData } from '@/lib/printer';
 import DailyReportReceipt from '@/components/reports/DailyReportReceipt';
 import { useTranslation } from 'react-i18next';
+import { InAppReview } from '@capacitor-community/in-app-review';
 
 const CURRENCY_SYMBOL: Record<string, string> = { id: 'Rp', en: 'Rp', ms: 'Rp' };
 const NUMBER_LOCALES: Record<string, string> = { id: 'id-ID', en: 'en-US', ms: 'ms-MY' };
@@ -37,6 +38,7 @@ export default function Laporan() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportData, setReportData] = useState<DailyReportPrintData | null>(null);
+  const [shouldRequestReviewOnClose, setShouldRequestReviewOnClose] = useState(false);
   const days = period === 'daily' ? 1 : Number(period);
 
   useEffect(() => {
@@ -204,6 +206,11 @@ export default function Laporan() {
 
     setReportData(data);
     setReportOpen(true);
+
+    const hasReviewed = localStorage.getItem('kg_has_requested_closing_review') === 'true';
+    if (!hasReviewed) {
+      setShouldRequestReviewOnClose(true);
+    }
   };
 
   return (
@@ -230,7 +237,23 @@ export default function Laporan() {
       {reportData && (
         <DailyReportReceipt
           open={reportOpen}
-          onClose={() => setReportOpen(false)}
+          onClose={async () => {
+            setReportOpen(false);
+            if (shouldRequestReviewOnClose) {
+              setShouldRequestReviewOnClose(false);
+              localStorage.setItem('kg_has_requested_closing_review', 'true');
+              if (isNativePlatform()) {
+                try {
+                  await InAppReview.requestReview();
+                } catch (err) {
+                  console.error('Failed to request in-app review:', err);
+                }
+              } else {
+                console.log('In-app review requested (mocked for PWA/Web)');
+                toast.info(t('dailyReceipt.reviewPromptWeb', 'Beri rating aplikasi kami di Play Store!'));
+              }
+            }
+          }}
           data={reportData}
         />
       )}
