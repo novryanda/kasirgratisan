@@ -2,6 +2,13 @@
   "title": "Pengaturan",
   "storeFallback": "Toko Saya",
   "notSet": "Belum diatur",
+  "playStoreAlert": {
+    "title": "Gunakan Aplikasi Android Resmi!",
+    "description": "Untuk performa terbaik, dukungan printer Bluetooth, dan fitur offline yang lebih stabil, silakan unduh aplikasi FreeKasir di Google Play Store.",
+    "migrationInstructions": "Pindahkan data Anda dengan mengekspor backup di menu Backup & Restore, lalu impor file backup tersebut di aplikasi Play Store Anda.",
+    "downloadButton": "Unduh di Play Store",
+    "backupButton": "Ekspor Backup Sekarang"
+  },
   "cloudSync": {
     "title": "FreeKasir Cloud",
     "status": {

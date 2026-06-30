@@ -333,6 +333,45 @@ export default function Pengaturan() {
         </CardContent>
       </Card>
 
+      {/* Play Store Alert */}
+      {!isNative && (
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-indigo-600 to-indigo-800 text-white relative overflow-hidden">
+          <CardContent className="p-4 flex flex-col gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-white">{t('playStoreAlert.title')}</h3>
+                <p className="text-[11px] text-white/90 leading-relaxed mt-0.5">{t('playStoreAlert.description')}</p>
+                <p className="text-[10px] text-white/70 leading-relaxed mt-1.5 bg-black/10 rounded p-2 border border-white/5">
+                  {t('playStoreAlert.migrationInstructions')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 justify-end mt-1">
+              {can('manage_backup') && (
+                <Link to="/settings/backup">
+                  <Button variant="ghost" size="sm" className="h-8 text-xs text-white hover:bg-white/10 hover:text-white border border-white/20">
+                    <Download className="w-3.5 h-3.5 mr-1" />
+                    {t('playStoreAlert.backupButton')}
+                  </Button>
+                </Link>
+              )}
+              <a
+                href="https://play.google.com/store/apps/details?id=com.freekasir.app"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="sm" className="h-8 text-xs bg-white text-indigo-700 hover:bg-indigo-50 font-semibold shadow-sm">
+                  {t('playStoreAlert.downloadButton')}
+                </Button>
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Cloud Sync — featured, status-aware */}
       {can('manage_backup') && (
         <Link to="/settings/cloud-backup" className="block mt-2">

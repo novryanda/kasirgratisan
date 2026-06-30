@@ -2,6 +2,13 @@
   "title": "Tetapan",
   "storeFallback": "Kedai Saya",
   "notSet": "Belum ditetapkan",
+  "playStoreAlert": {
+    "title": "Gunakan Aplikasi Android Rasmi!",
+    "description": "Untuk prestasi terbaik, sokongan pencetak Bluetooth, dan ciri luar talian yang lebih stabil, sila muat turun aplikasi FreeKasir di Google Play Store.",
+    "migrationInstructions": "Pindahkan data anda dengan mudah: 1. Eksport fail sandaran anda melalui menu Sandaran & Pulihkan di bawah. 2. Muat turun dan pasang aplikasi dari Play Store. 3. Import fail sandaran tersebut dalam aplikasi baru anda.",
+    "downloadButton": "Muat Turun di Play Store",
+    "backupButton": "Eksport Sandaran Sekarang"
+  },
   "cloudSync": {
     "title": "FreeKasir Cloud",
     "status": {
