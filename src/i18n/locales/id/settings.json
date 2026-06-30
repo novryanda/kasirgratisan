@@ -406,6 +406,7 @@
     "loading": "Memuat…",
     "requiresSubscription": "Langganan FreeKasir Cloud diperlukan untuk mengelola toko.",
     "activeDevice": "Device ini terhubung ke:",
+    "syncActive": "Sinkronisasi otomatis latar belakang aktif",
     "disconnect": "Putuskan",
     "storeList": "Daftar Toko",
     "used": "{{used}} dari {{max}} terpakai",

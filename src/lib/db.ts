@@ -42,6 +42,8 @@ export interface User {
   isActive: number;       // 0/1 — IndexedDB can't index booleans
   createdAt: Date;
   lastLoginAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface Category {
@@ -52,6 +54,8 @@ export interface Category {
   createdAt: Date;
   isDeleted: number; // 0 = active, 1 = deleted (IndexedDB can't index booleans)
   deletedAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface Product {
@@ -73,6 +77,7 @@ export interface Product {
   deletedAt: Date | null;
   createdBy?: number; // userId (optional — undefined for legacy/single-user mode)
   updatedBy?: number; // userId
+  syncedAt?: Date | null;
 }
 
 export interface Supplier {
@@ -84,6 +89,8 @@ export interface Supplier {
   createdAt: Date;
   isDeleted: number; // 0 = active, 1 = deleted
   deletedAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface Customer {
@@ -96,6 +103,8 @@ export interface Customer {
   createdAt: Date;
   isDeleted: number; // 0 = active, 1 = deleted
   deletedAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface StockIn {
@@ -108,6 +117,8 @@ export interface StockIn {
   date: Date;
   notes: string;
   createdBy?: number; // userId
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface StockOut {
@@ -118,6 +129,8 @@ export interface StockOut {
   date: Date;
   notes: string;
   createdBy?: number; // userId
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface StockOpname {
@@ -126,6 +139,8 @@ export interface StockOpname {
   status: 'draft' | 'completed';
   notes?: string;
   createdBy?: number; // userId
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface StockOpnameItem {
@@ -144,6 +159,8 @@ export interface HppHistory {
   newHpp: number;
   source: 'stock_in' | 'manual';
   date: Date;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface PaymentMethod {
@@ -152,6 +169,8 @@ export interface PaymentMethod {
   category: string; // tunai, transfer, e-wallet, qris
   isDefault: boolean;
   createdAt: Date;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface Transaction {
@@ -177,6 +196,8 @@ export interface Transaction {
   closedAt?: Date;
   createdBy?: number; // userId — kasir pembuat transaksi
   debtAmount?: number; // snapshot hutang awal; 0/undefined = lunas saat checkout
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface TransactionItemRecord {
@@ -201,6 +222,8 @@ export interface Unit {
   createdAt: Date;
   isDeleted: number; // 0 = active, 1 = deleted
   deletedAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface ExpenseCategory {
@@ -212,6 +235,8 @@ export interface ExpenseCategory {
   createdAt: Date;
   isDeleted: number;   // 0 = active, 1 = deleted
   deletedAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface Expense {
@@ -226,6 +251,8 @@ export interface Expense {
   createdBy?: number;              // userId
   isDeleted: number;               // 0 = active, 1 = deleted
   deletedAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface Debt {
@@ -238,6 +265,8 @@ export interface Debt {
   status: 'unpaid' | 'partial' | 'paid';
   createdAt: Date;
   settledAt: Date | null;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
 }
 
 export interface DebtPayment {
@@ -248,6 +277,16 @@ export interface DebtPayment {
   date: Date;
   notes?: string;
   createdBy?: number;
+  updatedAt?: Date;
+  syncedAt?: Date | null;
+}
+
+export interface DeletedRecord {
+  id?: number;
+  tableName: string;
+  recordId: number | string;
+  deletedAt: Date;
+  syncedAt: Date | null;
 }
 
 export interface StoreSettings {
@@ -293,6 +332,7 @@ class PosDatabase extends Dexie {
   debtPayments!: Table<DebtPayment>;
   stockOpnames!: Table<StockOpname>;
   stockOpnameItems!: Table<StockOpnameItem>;
+  deletedRecords!: Table<DeletedRecord>;
 
   constructor() {
     super('kasirgratisan-db');
@@ -688,10 +728,79 @@ class PosDatabase extends Dexie {
       stockOpnames:      '++id, date, status, createdBy',
       stockOpnameItems:  '++id, opnameId, productId, [opnameId+productId]',
     });
+
+    // Version 14 - Add sync audit columns (updatedAt, syncedAt) & deletedRecords table
+    this.version(14).stores({
+      categories:        '++id, name, isDeleted, updatedAt, syncedAt',
+      products:          '++id, name, &sku, categoryId, barcode, isDeleted, createdBy, updatedBy, unit, updatedAt, syncedAt',
+      suppliers:         '++id, name, isDeleted, updatedAt, syncedAt',
+      customers:         '++id, name, isDeleted, updatedAt, syncedAt',
+      stockIns:          '++id, productId, supplierId, date, createdBy, updatedAt, syncedAt',
+      stockOuts:         '++id, productId, date, createdBy, updatedAt, syncedAt',
+      hppHistory:        '++id, productId, date, syncedAt',
+      paymentMethods:    '++id, name, category, updatedAt, syncedAt',
+      transactions:      '++id, date, &receiptNumber, paymentMethodId, status, orderNumber, createdBy, updatedAt, syncedAt',
+      transactionItems:  '++id, transactionId, productId',
+      storeSettings:     '++id',
+      units:             '++id, &name, isDeleted, updatedAt, syncedAt',
+      users:             '++id, &username, role, isActive, updatedAt, syncedAt',
+      expenseCategories: '++id, name, isDeleted, updatedAt, syncedAt',
+      expenses:          '++id, date, categoryId, paymentMethodId, createdBy, isDeleted, updatedAt, syncedAt',
+      debts:             '++id, &transactionId, customerId, status, createdAt, updatedAt, syncedAt',
+      debtPayments:      '++id, debtId, date, paymentMethodId, createdBy, updatedAt, syncedAt',
+      stockOpnames:      '++id, date, status, createdBy, updatedAt, syncedAt',
+      stockOpnameItems:  '++id, opnameId, productId, [opnameId+productId]',
+      deletedRecords:    '++id, tableName, recordId, deletedAt, syncedAt',
+    }).upgrade(async (tx) => {
+      const now = new Date();
+      const backfillTable = async (tableName: string, dateFields: string[]) => {
+        const table = tx.table(tableName);
+        await table.toCollection().modify((record: any) => {
+          if (!record.updatedAt) {
+            let baseDate = now;
+            for (const field of dateFields) {
+              if (record[field]) {
+                const parsed = new Date(record[field]);
+                if (!isNaN(parsed.getTime())) {
+                  baseDate = parsed;
+                  break;
+                }
+              }
+            }
+            record.updatedAt = baseDate;
+          }
+          if (record.syncedAt === undefined) {
+            record.syncedAt = null;
+          }
+        });
+      };
+
+      await backfillTable('categories', ['createdAt']);
+      await backfillTable('products', ['updatedAt', 'createdAt']);
+      await backfillTable('suppliers', ['createdAt']);
+      await backfillTable('customers', ['createdAt']);
+      await backfillTable('stockIns', ['date']);
+      await backfillTable('stockOuts', ['date']);
+      
+      await tx.table('hppHistory').toCollection().modify((record: any) => {
+        if (record.syncedAt === undefined) record.syncedAt = null;
+      });
+
+      await backfillTable('paymentMethods', ['createdAt']);
+      await backfillTable('transactions', ['date', 'openedAt', 'closedAt']);
+      await backfillTable('units', ['createdAt']);
+      await backfillTable('users', ['createdAt']);
+      await backfillTable('expenseCategories', ['createdAt']);
+      await backfillTable('expenses', ['date', 'createdAt']);
+      await backfillTable('debts', ['createdAt']);
+      await backfillTable('debtPayments', ['date']);
+      await backfillTable('stockOpnames', ['date']);
+    });
   }
 }
 
 export const db = new PosDatabase();
+setupSyncHooks(db);
 
 // Apakah stok produk dikelola? `undefined`/`true` = dikelola (perilaku lama),
 // `false` = tidak dikelola (produk selalu tersedia, stok diabaikan).
@@ -719,23 +828,101 @@ async function sanitizeTableDates(table: any, dateFields: string[]) {
 }
 
 export async function sanitizeDatabaseDates() {
-  await sanitizeTableDates(db.categories, ['createdAt', 'deletedAt']);
-  await sanitizeTableDates(db.products, ['createdAt', 'updatedAt', 'deletedAt']);
-  await sanitizeTableDates(db.suppliers, ['createdAt', 'deletedAt']);
-  await sanitizeTableDates(db.customers, ['createdAt', 'deletedAt']);
-  await sanitizeTableDates(db.stockIns, ['date']);
-  await sanitizeTableDates(db.stockOuts, ['date']);
-  await sanitizeTableDates(db.hppHistory, ['date']);
-  await sanitizeTableDates(db.paymentMethods, ['createdAt']);
-  await sanitizeTableDates(db.transactions, ['date', 'openedAt', 'closedAt']);
-  await sanitizeTableDates(db.users, ['createdAt', 'lastLoginAt']);
-  await sanitizeTableDates(db.units, ['createdAt', 'deletedAt']);
-  await sanitizeTableDates(db.expenseCategories, ['createdAt', 'deletedAt']);
-  await sanitizeTableDates(db.expenses, ['date', 'createdAt', 'deletedAt']);
-  await sanitizeTableDates(db.debts, ['createdAt', 'settledAt']);
-  await sanitizeTableDates(db.debtPayments, ['date']);
-  await sanitizeTableDates(db.stockOpnames, ['date']);
+  await sanitizeTableDates(db.categories, ['createdAt', 'deletedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.products, ['createdAt', 'updatedAt', 'deletedAt', 'syncedAt']);
+  await sanitizeTableDates(db.suppliers, ['createdAt', 'deletedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.customers, ['createdAt', 'deletedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.stockIns, ['date', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.stockOuts, ['date', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.hppHistory, ['date', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.paymentMethods, ['createdAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.transactions, ['date', 'openedAt', 'closedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.users, ['createdAt', 'lastLoginAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.units, ['createdAt', 'deletedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.expenseCategories, ['createdAt', 'deletedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.expenses, ['date', 'createdAt', 'deletedAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.debts, ['createdAt', 'settledAt', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.debtPayments, ['date', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.stockOpnames, ['date', 'updatedAt', 'syncedAt']);
+  await sanitizeTableDates(db.deletedRecords, ['deletedAt', 'syncedAt']);
   await sanitizeTableDates(db.storeSettings, ['lastBackupAt', 'lastCloudBackupAt']);
+}
+
+export function setupSyncHooks(db: PosDatabase) {
+  const syncTables = [
+    'categories',
+    'products',
+    'suppliers',
+    'customers',
+    'units',
+    'paymentMethods',
+    'users',
+    'expenseCategories',
+    'expenses',
+    'transactions',
+    'stockIns',
+    'stockOuts',
+    'hppHistory',
+    'debts',
+    'debtPayments',
+    'stockOpnames'
+  ];
+
+  syncTables.forEach((tableName) => {
+    const table = db.table(tableName);
+
+    table.hook('creating', (primKey, obj) => {
+      if (!obj.updatedAt) {
+        obj.updatedAt = new Date();
+      }
+      if (obj.syncedAt === undefined) {
+        obj.syncedAt = null;
+      }
+      import('./sync').then(({ triggerBackgroundSync }) => triggerBackgroundSync());
+    });
+
+    table.hook('updating', (mods, primKey, obj) => {
+      // If the update explicitly specifies syncedAt or updatedAt, preserve them
+      if (mods.syncedAt !== undefined || mods.updatedAt !== undefined) {
+        return;
+      }
+
+      import('./sync').then(({ triggerBackgroundSync }) => triggerBackgroundSync());
+
+      // Otherwise, it's a user modification: set updatedAt to now, and reset syncedAt to null
+      return {
+        ...mods,
+        updatedAt: new Date(),
+        syncedAt: null
+      };
+    });
+  });
+
+  // Track hard deletes in the deletedRecords tombstone table
+  const hardDeleteTables = [
+    'paymentMethods',
+    'users',
+    'transactions',
+    'debts',
+    'stockOpnames'
+  ];
+
+  hardDeleteTables.forEach((tableName) => {
+    const table = db.table(tableName);
+    table.hook('deleting', (primKey, obj) => {
+      setTimeout(() => {
+        db.deletedRecords.add({
+          tableName,
+          recordId: primKey,
+          deletedAt: new Date(),
+          syncedAt: null
+        }).catch((err) => {
+          console.error(`Failed to record deletedRecord tombstone for ${tableName} (ID: ${primKey}):`, err);
+        });
+        import('./sync').then(({ triggerBackgroundSync }) => triggerBackgroundSync());
+      }, 0);
+    });
+  });
 }
 
 // Seed default data

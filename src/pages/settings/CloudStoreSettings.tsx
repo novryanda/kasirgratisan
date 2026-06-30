@@ -196,6 +196,10 @@ export default function CloudStoreSettings() {
                   <p className="text-sm font-semibold truncate">
                     {activeStoreName}
                   </p>
+                  <p className="text-[10px] text-success font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse inline-block" />
+                    {t('cloudStore.syncActive')}
+                  </p>
                 </div>
                 <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={handleUnbind}>
                   {t('cloudStore.disconnect')}

@@ -406,6 +406,7 @@
     "loading": "Loading…",
     "requiresSubscription": "FreeKasir Cloud subscription is required to manage stores.",
     "activeDevice": "This device is connected to:",
+    "syncActive": "Automatic background sync active",
     "disconnect": "Disconnect",
     "storeList": "Store List",
     "used": "{{used}} of {{max}} used",

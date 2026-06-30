@@ -82,7 +82,7 @@ export default function CloudBackupSettings() {
 
   const byPrice = (a: Plan, b: Plan) => a.price - b.price;
   const storagePlans = plans.filter((p) => p.category === 'STORAGE').sort(byPrice);
-  const syncPlans = plans.filter((p) => p.category === 'SYNC').sort(byPrice);
+  const syncPlans = plans.filter((p) => p.category === 'SYNC' && p.id === 'plan_sync_1').sort(byPrice);
   const cheapestSyncPrice = syncPlans.length ? syncPlans[0].price : null;
 
   const loadPlans = useCallback(async () => {
